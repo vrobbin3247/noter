@@ -4,7 +4,7 @@ function App() {
 
   return (
     <>
-      <div class="font-bold">
+      <div className="font-bold text-amber-300">
         hello
       </div>
     </>
