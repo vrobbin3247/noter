@@ -12,7 +12,7 @@ export default function Dashboard() {
       if (error || !data?.user) {
         navigate('/') // not logged in, redirect to login
       } else {
-        setUserEmail(data.user.email)
+        setUserEmail(data.user.email as string)
       }
     }
 
