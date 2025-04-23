@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 // import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
-
+import Masonry from 'react-masonry-css'
 import ThoughtCard from '../components/ThoughtCard';
 
 type Thought = {
@@ -34,12 +34,24 @@ const Dashboard = () => {
     fetchThoughts();
   }, []);
 
+  const breakpointColumnsObj = {
+    default: 6,
+    1280: 4,
+    1024: 3,
+    768: 2,
+    640: 1
+  };
+
   return (
-    <div className="p-4">
+    <div className="p-4 mx-auto">
       <h1 className="text-2xl font-bold mb-6">🧠 Thoughts Feed</h1>
-      <div className="flex overflow-x-auto gap-4 pb-4">
+      <Masonry
+        breakpointCols={breakpointColumnsObj}
+        className="flex w-auto"
+        columnClassName="bg-clip-padding"
+      >
         {thoughts.map((thought) => (
-          <div key={thought.id} className="flex-shrink-0 w-64">
+          <div key={thought.id} className="mb-4 mx-2"> {/* Removed fixed width/height */}
             <ThoughtCard
               content={thought.content}
               color={thought.color}
@@ -48,7 +60,7 @@ const Dashboard = () => {
             />
           </div>
         ))}
-      </div>
+      </Masonry>
     </div>
   );
 };
