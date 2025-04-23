@@ -35,7 +35,7 @@ const Dashboard = () => {
   }, []);
 
   const breakpointColumnsObj = {
-    default: 6,
+    default: 5,
     1280: 4,
     1024: 3,
     768: 2,
@@ -43,15 +43,14 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-4 mx-auto">
-      <h1 className="text-2xl font-bold mb-6">🧠 Thoughts Feed</h1>
+    <div className="flex-1 mx-auto max-w-7xl"> {/* Added max-w-7xl to match header */}
       <Masonry
         breakpointCols={breakpointColumnsObj}
         className="flex w-auto"
         columnClassName="bg-clip-padding"
       >
         {thoughts.map((thought) => (
-          <div key={thought.id} className="mb-4 mx-2"> {/* Removed fixed width/height */}
+          <div key={thought.id} className="mb-4 mx-2">
             <ThoughtCard
               content={thought.content}
               color={thought.color}
