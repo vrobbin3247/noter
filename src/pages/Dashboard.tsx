@@ -14,7 +14,7 @@ type Thought = {
 
 const Dashboard = () => {
   const [thoughts, setThoughts] = useState<Thought[]>([]);
-  const navigate = useNavigate();
+//   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchThoughts = async () => {
