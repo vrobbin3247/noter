@@ -7,7 +7,7 @@ export default function Header() {
         {/* Left - App Name */}
         <div className="flex items-center">
           <Link 
-            to="/dashboard" 
+            to="/" 
             className="text-5xl font-bold text-orange-300"
             style={{ fontFamily: "'Fredoka', sans-serif" }}
           >

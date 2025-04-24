@@ -10,13 +10,13 @@ export default function Login() {
           <p className="mt-2 text-sm text-gray-500">Your space to think.</p>
         </div> */}
         <AuthForm />
-        <div className="text-center text-sm text-gray-600">
+        {/* <div className="text-center text-sm text-gray-600">
           {window.location.pathname === '/login' ? (
             <Link to="/" className="text-blue-600 hover:underline">← Back to home</Link>
           ) : (
             <Link to="/login" className="text-blue-600 hover:underline">→ Go to login</Link>
           )}
-        </div>
+        </div> */}
       </div>
     </div>
   )

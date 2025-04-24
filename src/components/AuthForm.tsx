@@ -25,7 +25,7 @@ export default function AuthForm() {
     } else {
       if (isLogin) {
         toast.success('Logged in!')
-        navigate('/dashboard')
+        navigate('/')
       } else {
         toast.success('Signed up! Check your email for confirmation.')
       }

@@ -1,30 +1,37 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { supabase } from './lib/supabaseClient'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Header from './components/Header'
 
-function AppContent() {
-  const location = useLocation()
-  const showHeader = location.pathname !== '/' && location.pathname !== '/login'
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      {showHeader && <Header />}
-      <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Routes>
-      </main>
-    </div>
-  )
-}
-
 function App() {
+  const [session, setSession] = useState(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
   return (
     <Router>
-      <AppContent />
+      <div className="min-h-screen flex flex-col">
+        {session && <Header />}
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={session ? <Dashboard /> : <Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Routes>
+        </main>
+      </div>
     </Router>
   )
 }
