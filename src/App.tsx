@@ -1,12 +1,13 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabaseClient'
+import { Session } from '@supabase/supabase-js' // Add this import
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Header from './components/Header'
 
 function App() {
-  const [session, setSession] = useState(null)
+  const [session, setSession] = useState<Session | null>(null) // Add proper type annotation
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
