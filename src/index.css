@@ -1,1 +1,13 @@
 @import "tailwindcss";
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overscroll-behavior-y: contain;
+}
+
+/* Smooth scrolling for masonry */
+.masonry-grid {
+  transition: height 0.4s ease-out;
+}

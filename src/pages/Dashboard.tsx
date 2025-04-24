@@ -43,14 +43,18 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex-1 mx-auto max-w-7xl"> {/* Added max-w-7xl to match header */}
+    <div className="flex-1 mx-auto px-24 overflow-y-auto"> {/* Added overflow-y-auto */}
       <Masonry
         breakpointCols={breakpointColumnsObj}
-        className="flex w-auto"
-        columnClassName="bg-clip-padding"
+        className="flex w-auto -ml-4" // Added negative margin to compensate for column padding
+        columnClassName="ml-4 bg-clip-padding" // Added margin to columns
       >
         {thoughts.map((thought) => (
-          <div key={thought.id} className="mb-4 mx-2">
+          <div 
+            key={thought.id} 
+            className="mb-4 transition-transform duration-300 hover:scale-[1.02]" // Added smooth hover effect
+            style={{ transition: 'transform 0.3s ease' }} // Smooth transform
+          >
             <ThoughtCard
               content={thought.content}
               color={thought.color}

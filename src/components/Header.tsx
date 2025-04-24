@@ -2,13 +2,13 @@ import { Link } from 'react-router-dom';
 
 export default function Header() {
   return (
-    <header className="bg-white py-6 px-6">
+    <header className="bg-white py-6 px-6 mb-5">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Left - App Name */}
         <div className="flex items-center">
           <Link 
             to="/dashboard" 
-            className="text-4xl font-bold text-orange-300"
+            className="text-5xl font-bold text-orange-300"
             style={{ fontFamily: "'Fredoka', sans-serif" }}
           >
             Mura
@@ -16,7 +16,7 @@ export default function Header() {
         </div>
         
         {/* Middle - Search Field */}
-        <div className="flex-1 max-w-md mx-6">
+        <div className="flex-1 max-w-2xl mx-6"> {/* Changed from max-w-md to max-w-2xl */}
           <div className="relative">
             <input
               type="text"
@@ -24,9 +24,9 @@ export default function Header() {
               className="w-full py-2 px-4 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <svg
-              className="absolute right-3 top-2.5 h-5 w-5 text-gray-400"
+              className="absolute right-3 top-2.5 h-5 w-5"
               fill="none"
-              stroke="currentColor"
+              stroke="#88ccf1" 
               viewBox="0 0 24 24"
             >
               <path

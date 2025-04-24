@@ -1,104 +1,122 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useNavigate } from 'react-router-dom'
+import { EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/outline'
+import toast from 'react-hot-toast'
+import { motion } from 'framer-motion'
 
 export default function AuthForm() {
-    const navigate = useNavigate()
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [isLogin, setIsLogin] = useState(true)
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [isLogin, setIsLogin] = useState(true)
 
-//   const handleLogin = async (e: React.FormEvent) => {
-//     e.preventDefault()
-//     setLoading(true)
-
-//     const { error } = await supabase.auth.signInWithOtp({ email })
-
-//     if (error) {
-//       setMessage(`Error: ${error.message}`)
-//     } else {
-//       setMessage('Check your email for the login link!')
-//     }
-
-//     setLoading(false)
-//   }
-
-const handleSignUp = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
+    const { error } = isLogin
+      ? await supabase.auth.signInWithPassword({ email, password })
+      : await supabase.auth.signUp({ email, password })
 
     if (error) {
-      setMessage(`Error: ${error.message}`)
+      toast.error(error.message)
     } else {
-      setMessage('Successfully signed up! Check your email for confirmation.')
-    }
-
-    setLoading(false)
-  }
-
-const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-
-    const { error } = await supabase.auth.signInWithPassword({ 
-        email,
-        password
-    })
-
-    if (error) {
-      setMessage(`Error: ${error.message}`)
-    } else {
-    //   setMessage('Successfully logged in!'),
-      navigate('/dashboard')
+      if (isLogin) {
+        toast.success('Logged in!')
+        navigate('/dashboard')
+      } else {
+        toast.success('Signed up! Check your email for confirmation.')
+      }
     }
 
     setLoading(false)
   }
 
   return (
-    <form onSubmit={isLogin ? handleLogin : handleSignUp} className="w-full max-w-sm mx-auto mt-20 space-y-4">
-      <h2 className="text-xl font-semibold">{isLogin ? 'Login' : 'Sign Up'}</h2>
-      {/* Add email input field */}
-      <input
-        className="w-full px-4 py-2 border rounded bg-white text-black"
-        type="email"
-        placeholder="Your email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        className="w-full px-4 py-2 border rounded bg-white text-black"
-        type="password"
-        placeholder="Your password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-       <button
-        type="submit"
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
-        disabled={loading}
-      >
-        {loading ? (isLogin ? 'Logging in...' : 'Signing up...') : (isLogin ? 'Login' : 'Sign Up')}
-      </button>
+    <motion.form
+      onSubmit={handleAuth}
+      className="space-y-4"
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
+      <h2 className="text-2xl font-semibold text-center text-gray-700">
+        {isLogin ? 'Sign in to your account' : 'Create an account'}
+      </h2>
+
+      <div className="relative">
+        <EnvelopeIcon className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
+        <input
+          type="email"
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Email address"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="relative">
+        <LockClosedIcon className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
+        <input
+          type="password"
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+      </div>
 
       <button
-        type="button"
-        className="w-full text-blue-600 hover:text-blue-800 text-sm mt-2"
-        onClick={() => setIsLogin(!isLogin)}
+        type="submit"
+        className={`w-full py-2 text-white font-semibold rounded-md flex items-center justify-center gap-2 transition-all duration-200 ${
+          loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+        }`}
+        disabled={loading}
       >
-        {isLogin ? 'Need an account? Sign Up' : 'Already have an account? Login'}
+        {loading && (
+          <svg
+            className="animate-spin h-5 w-5 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            ></path>
+          </svg>
+        )}
+        {loading
+          ? isLogin
+            ? 'Logging in...'
+            : 'Signing up...'
+          : isLogin
+          ? 'Login'
+          : 'Sign Up'}
       </button>
 
-      {message && <p className="text-sm text-center text-gray-600">{message}</p>}
-    </form>
+      <div className="text-center">
+        <button
+          type="button"
+          className="text-sm text-blue-600 hover:underline"
+          onClick={() => setIsLogin(!isLogin)}
+        >
+          {isLogin ? 'Need an account? Sign Up' : 'Already have an account? Login'}
+        </button>
+      </div>
+    </motion.form>
   )
 }
