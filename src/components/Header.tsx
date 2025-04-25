@@ -13,13 +13,12 @@ export default function Header() {
       if (user) {
         const { data } = await supabase
           .from('profiles')
-          .select('avatar_url, username')
+          .select('avatar_url')
           .eq('id', user.id)
           .single();
         
         if (data) {
           setAvatarUrl(data.avatar_url);
-          setUsername(data.username);
         }
       }
     };
