@@ -4,7 +4,6 @@ import { supabase } from '../lib/supabaseClient';
 
 export default function Header() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
