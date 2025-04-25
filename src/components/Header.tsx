@@ -1,6 +1,48 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useState, useRef } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
 export default function Header() {
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('avatar_url, username')
+          .eq('id', user.id)
+          .single();
+        
+        if (data) {
+          setAvatarUrl(data.avatar_url);
+          setUsername(data.username);
+        }
+      }
+    };
+
+    fetchProfile();
+
+    // Close dropdown when clicking outside
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  };
+
   return (
     <header className="bg-white py-6 px-6 mb-5">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -16,7 +58,7 @@ export default function Header() {
         </div>
         
         {/* Middle - Search Field */}
-        <div className="flex-1 max-w-2xl mx-6"> {/* Changed from max-w-md to max-w-2xl */}
+        <div className="flex-1 max-w-2xl mx-6">
           <div className="relative">
             <input
               type="text"
@@ -26,7 +68,7 @@ export default function Header() {
             <svg
               className="absolute right-3 top-2.5 h-5 w-5"
               fill="none"
-              stroke="#88ccf1" 
+              stroke="#88ccf1"
               viewBox="0 0 24 24"
             >
               <path
@@ -40,22 +82,52 @@ export default function Header() {
         </div>
         
         {/* Right - User Profile */}
-        <div className="flex items-center">
-          <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-            <svg
-              className="h-6 w-6 text-gray-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+        <div className="relative" ref={dropdownRef}>
+          <div 
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => setShowDropdown(!showDropdown)}
+          >            {avatarUrl ? (
+              <img 
+                src={avatarUrl} 
+                alt="User avatar"
+                className="w-14 h-14 rounded-full object-cover border-2 border-gray-200 hover:border-blue-300 transition-all"
               />
-            </svg>
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-gray-300 flex items-center justify-center hover:bg-gray-400 transition-all">
+                <svg
+                  className="h-6 w-6 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </div>
+            )}
           </div>
+
+          {/* Dropdown Menu */}
+          {showDropdown && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+              <Link
+                to="/profile"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Your Profile
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Sign out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>
