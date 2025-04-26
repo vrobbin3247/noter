@@ -18,8 +18,8 @@ type ThoughtCardProps = {
     author,
     votes = 0,
     comments = 0,
-    color,
-    font
+    // color,
+    // font
   }: ThoughtCardProps) => {
     return (
       <div
