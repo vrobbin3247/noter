@@ -42,7 +42,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-[#FAF8F5] py-6 px-6 mb-5">
+    <header className="bg-[#FAF8F5] pt-4 px-6 ">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Left - App Name */}
         <div className="flex items-center">
