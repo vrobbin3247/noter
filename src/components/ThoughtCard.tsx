@@ -1,27 +1,69 @@
+import { ArrowUpIcon, ChatBubbleLeftIcon, BookmarkIcon } from '@heroicons/react/24/outline'
 
 type ThoughtCardProps = {
-  content: string;
-  color: string;
-  font: string;
-  createdAt: string;
-};
-
-const ThoughtCard = ({ content, color, font, createdAt }: ThoughtCardProps) => {
+    content: string
+    createdAt: string
+    author?: {
+      username?: string
+    }
+    votes?: number
+    comments?: number
+    color?: string
+    font?: string
+  }
+  
+  const ThoughtCard = ({
+    content,
+    createdAt,
+    author,
+    votes = 0,
+    comments = 0,
+    color,
+    font
+  }: ThoughtCardProps) => {
     return (
-      <div 
-        className={`rounded-lg p-4 shadow-lg backdrop-blur-md bg-white/30 border border-white/20`}
+      <div
+        className="rounded-xl border border-gray-300 p-4 relative bg-repeat  bg-[#fefae0]"
         style={{
-          fontFamily: font,
-          minWidth: '200px',
-          maxWidth: '270px',
-          backgroundColor: `${color}80`, // Adds 50% opacity to the existing color
-          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+            backgroundImage: `repeating-linear-gradient(
+                to bottom,
+                #fefae0 0px,
+                #fefae0 23px,
+                #e0d9c7 24px
+              )`,
+          backgroundSize: 'auto 24px',
+          fontFamily: 'Nanum Brush Script',
+          maxWidth: '350px',
+          backgroundColor:  '#fefae0'
         }}
       >
-        <p className="text-lg mb-2 break-words">{content}</p>
-        <p className="text-xs text-gray-600">{new Date(createdAt).toLocaleString()}</p>
+      {/* Author and Date */}
+      <div className="mb-4">
+        <p className="font-bold text-2xl">{author?.username || 'Anonymous'}</p>
+        <p className="text-xl text-gray-600">{new Date(createdAt).toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        })}</p>
       </div>
-    );
-  };
 
-export default ThoughtCard;
+      {/* Content */}
+      <p className="text-3xl mb-6 break-words">{content}</p>
+
+      {/* Bottom Actions */}
+      <div className="flex items-center font-serif justify-between text-gray-600 text-sm">
+        <div className="flex items-center gap-1">
+          <ArrowUpIcon className="h-4 w-4" />
+          {votes}
+        </div>
+        <div className="flex items-center gap-1">
+          <ChatBubbleLeftIcon className="h-4 w-4" />
+          {comments}
+        </div>
+        <BookmarkIcon className="h-4 w-4" />
+      </div>
+    </div>
+  )
+}
+
+export default ThoughtCard

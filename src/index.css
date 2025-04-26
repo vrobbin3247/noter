@@ -11,3 +11,9 @@ body {
 .masonry-grid {
   transition: height 0.4s ease-out;
 }
+
+.nanum-brush-script-regular {
+  font-family: "Nanum Brush Script", cursive;
+  font-weight: 800;
+  font-style: normal;
+}
