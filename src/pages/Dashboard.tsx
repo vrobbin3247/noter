@@ -119,6 +119,11 @@ const Dashboard = () => {
         '/api/deepseek', // Use relative path in both environments
         {
           text: newThought.trim()
+        },
+        {
+            headers: {
+                'Content-Type': 'application/json'
+              }
         }
       );
       const tags = response.data?.tags || [];
