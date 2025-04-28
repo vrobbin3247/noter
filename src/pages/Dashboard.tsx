@@ -116,9 +116,7 @@ const Dashboard = () => {
   
       // 2. Call DeepSeek API to get Tags
       const response = await axios.post(
-        process.env.NODE_ENV === 'development'
-          ? '/api/deepseek'
-          : 'https://noter-theta.vercel.app/api/deepseek',
+        '/api/deepseek', // Use relative path in both environments
         {
           text: newThought.trim()
         }

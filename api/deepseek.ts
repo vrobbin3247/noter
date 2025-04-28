@@ -1,7 +1,11 @@
+// res.setHeader('Access-Control-Allow-Origin', '*');
+// res.setHeader('Access-Control-Allow-Methods', 'POST');
+// res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
+// At the start of your handler
 
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 

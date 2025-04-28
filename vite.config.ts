@@ -8,9 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: process.env.NODE_ENV === 'development' 
-          ? 'http://localhost:3000' 
-          : 'https://noter-theta.vercel.app',
+        target: 'http://localhost:3000', // Remove the production target
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }
