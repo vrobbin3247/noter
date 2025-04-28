@@ -17,10 +17,7 @@ interface Forum {
 }
 
 // Fix: Update the ThoughtTag interface to match the actual structure
-interface QueryResultItem {
-  tags: { name: string };
-  thoughts: { created_at: string };
-}
+
 
 export default function HeaderExtensions() {
   const [showForumSwitcher, setShowForumSwitcher] = useState(false);
