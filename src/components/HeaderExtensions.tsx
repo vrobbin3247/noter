@@ -3,30 +3,40 @@ import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { PlusIcon, TagIcon, UserGroupIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
 
+// Define proper TypeScript interfaces
+interface Tag {
+  id?: string;
+  name: string;
+  count: number;
+}
+
+interface Forum {
+  id: number;
+  name: string;
+  unread: number;
+}
+
+type ThoughtTag = {
+  tags: { name: string };
+  thoughts: { created_at: string };
+};
+
 export default function HeaderExtensions() {
   const [showForumSwitcher, setShowForumSwitcher] = useState(false);
   const [showTagExplorer, setShowTagExplorer] = useState(false);
   const [showCreateForumModal, setShowCreateForumModal] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [trendingTags, setTrendingTags] = useState<Tag[]>([]);
-const [popularTags, setPopularTags] = useState<Tag[]>([]);
+  const [popularTags, setPopularTags] = useState<Tag[]>([]);
   const forumSwitcherRef = useRef<HTMLDivElement>(null);
   const tagExplorerRef = useRef<HTMLDivElement>(null);
   
-  const myForums = [
+  const myForums: Forum[] = [
     { id: 1, name: 'Daily Reflections', unread: 3 },
     { id: 2, name: 'Product Design', unread: 0 },
     { id: 3, name: 'Book Club', unread: 7 },
     { id: 4, name: 'Future of AI', unread: 12 }
   ];
-
-  type Tag = {
-    name: string;
-    count: number;
-    id?: string; // Optional since not all tag objects have an id
-  };
-
-
 
   useEffect(() => {
     const fetchTrendingTags = async () => {
@@ -55,13 +65,15 @@ const [popularTags, setPopularTags] = useState<Tag[]>([]);
           if (queryError) throw queryError;
       
           const tagCounts: Record<string, number> = {};
-          queryData?.forEach(({ tags }) => {
-            if (tags?.name) {
-              tagCounts[tags.name] = (tagCounts[tags.name] || 0) + 1;
+          
+          // Fix: properly type and access the queryData
+          (queryData as ThoughtTag[])?.forEach((item) => {
+            if (item.tags?.name) {
+              tagCounts[item.tags.name] = (tagCounts[item.tags.name] || 0) + 1;
             }
           });
       
-          const sortedTags = Object.entries(tagCounts)
+          const sortedTags: Tag[] = Object.entries(tagCounts)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 15)
             .map(([name, count]) => ({ name, count }));
@@ -129,15 +141,16 @@ const [popularTags, setPopularTags] = useState<Tag[]>([]);
         {/* Trending Tags Bar (left) */}
         <div className="flex-1 flex items-center gap-3 overflow-x-auto no-scrollbar">
           <span className="text-[#A8A39B] text-xs font-medium whitespace-nowrap">Trending:</span>
-          {trendingTags.map((tag: Tag) => ( // Explicitly type the tag parameter
-  <Link 
-    key={tag.name} 
-    to={`/tags/${tag.name}`}
-    className="text-sm text-[#6B6A68] hover:text-[#C9A889] bg-[#FDFCFA] hover:bg-[#F5F3EF] px-3 py-1 rounded-full border border-[#E8E4DD] whitespace-nowrap transition-colors duration-200"
-  >
-    #{tag.name}
-  </Link>
-))}
+          {trendingTags.map((tag: Tag) => (
+            <Link 
+              key={tag.name} 
+              to={`/tags/${tag.name}`}
+              className="text-sm text-[#6B6A68] hover:text-[#C9A889] bg-[#FDFCFA] hover:bg-[#F5F3EF] px-3
+              py-1 rounded-full border border-[#E8E4DD] whitespace-nowrap transition-colors duration-200"
+            >
+              #{tag.name}
+            </Link>
+          ))}
         </div>
 
         {/* Tag Explorer (right) */}
@@ -201,19 +214,19 @@ const [popularTags, setPopularTags] = useState<Tag[]>([]);
                 </div>
                 
                 <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
-                {popularTags.map((tag: Tag) => ( // Explicitly type the tag parameter
-  <button
-    key={tag.name} // Use name as key since id might not exist
-    onClick={() => toggleTagSelection(tag.name)}
-    className={`text-xs px-2 py-1 rounded-full border transition-colors duration-200 ${
-      selectedTags.includes(tag.name)
-        ? 'bg-[#C9A889] text-white border-[#C9A889]'
-        : 'bg-[#FDFCFA] text-[#6B6A68] border-[#E8E4DD] hover:bg-[#F5F3EF]'
-    }`}
-  >
-    #{tag.name} <span className="text-xs opacity-70">({tag.count})</span>
-  </button>
-))}
+                {popularTags.map((tag: Tag) => (
+                  <button
+                    key={tag.name}
+                    onClick={() => toggleTagSelection(tag.name)}
+                    className={`text-xs px-2 py-1 rounded-full border transition-colors duration-200 ${
+                      selectedTags.includes(tag.name)
+                        ? 'bg-[#C9A889] text-white border-[#C9A889]'
+                        : 'bg-[#FDFCFA] text-[#6B6A68] border-[#E8E4DD] hover:bg-[#F5F3EF]'
+                    }`}
+                  >
+                    #{tag.name} <span className="text-xs opacity-70">({tag.count})</span>
+                  </button>
+                ))}
                 </div>
               </div>
               
