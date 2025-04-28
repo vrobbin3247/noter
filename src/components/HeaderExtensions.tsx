@@ -8,8 +8,8 @@ export default function HeaderExtensions() {
   const [showTagExplorer, setShowTagExplorer] = useState(false);
   const [showCreateForumModal, setShowCreateForumModal] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [trendingTags, setTrendingTags] = useState<{name: string, count: number}[]>([]);
-  const [popularTags, setPopularTags] = useState<{name: string, count: number}[]>([]);
+  const [trendingTags, setTrendingTags] = useState<Tag[]>([]);
+const [popularTags, setPopularTags] = useState<Tag[]>([]);
   const forumSwitcherRef = useRef<HTMLDivElement>(null);
   const tagExplorerRef = useRef<HTMLDivElement>(null);
   
@@ -20,80 +20,83 @@ export default function HeaderExtensions() {
     { id: 4, name: 'Future of AI', unread: 12 }
   ];
 
+  type Tag = {
+    name: string;
+    count: number;
+    id?: string; // Optional since not all tag objects have an id
+  };
+
 
 
   useEffect(() => {
     const fetchTrendingTags = async () => {
-      try {
-        // First fallback: Try the RPC call
-        const { data: rpcData, error: rpcError } = await supabase
-          .rpc('get_trending_tags', { 
-            days: 7, 
-            limit: 10 
-          });
-
-        if (!rpcError && rpcData) {
-          setTrendingTags(rpcData);
-          return;
-        }
-
-        // Fallback to direct query if RPC fails
-        console.log('Falling back to direct query...');
-        const { data: queryData, error: queryError } = await supabase
-          .from('thought_tags')
-          .select(`
-            tags!inner(name),
-            thoughts!inner(created_at)
-          `)
-          .gte('thoughts.created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-          .limit(50);
-
-        if (queryError) throw queryError;
-
-        // Count tag occurrences manually
-        const tagCounts: Record<string, number> = {};
-        queryData?.forEach(({ tags }) => {
-          if (tags?.name) {
-            tagCounts[tags.name] = (tagCounts[tags.name] || 0) + 1;
+        try {
+          const { data: rpcData, error: rpcError } = await supabase
+            .rpc('get_trending_tags', { 
+              days: 7, 
+              limit: 10 
+            });
+      
+          if (!rpcError && rpcData) {
+            setTrendingTags(rpcData as Tag[]);
+            return;
           }
-        });
-
-        const sortedTags = Object.entries(tagCounts)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 15)
-          .map(([name, count]) => ({ name, count }));
-
-        setTrendingTags(sortedTags);
-      } catch (error) {
-        console.error('Error fetching trending tags:', error);
-        // Final fallback to popular tags if both methods fail
-        setTrendingTags(popularTags.slice(0, 15));
-      }
-    };
-
-    const fetchPopularTags = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('tags')
-          .select(`
-            name, 
-            thought_tags(count)
-          `)
-          .order('count', { foreignTable: 'thought_tags', ascending: false })
-          .limit(20);
-
-        if (error) throw error;
-
-        setPopularTags(
-          data.map(tag => ({
-            name: tag.name,
-            count: tag.thought_tags[0]?.count || 0
-          }))
-        );
-      } catch (error) {
-        console.error('Error fetching popular tags:', error);
-      }
-    };
+      
+          // Fallback to direct query
+          const { data: queryData, error: queryError } = await supabase
+            .from('thought_tags')
+            .select(`
+              tags!inner(name),
+              thoughts!inner(created_at)
+            `)
+            .gte('thoughts.created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+            .limit(50);
+      
+          if (queryError) throw queryError;
+      
+          const tagCounts: Record<string, number> = {};
+          queryData?.forEach(({ tags }) => {
+            if (tags?.name) {
+              tagCounts[tags.name] = (tagCounts[tags.name] || 0) + 1;
+            }
+          });
+      
+          const sortedTags = Object.entries(tagCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 15)
+            .map(([name, count]) => ({ name, count }));
+      
+          setTrendingTags(sortedTags);
+        } catch (error) {
+          console.error('Error fetching trending tags:', error);
+          setTrendingTags(popularTags.slice(0, 15));
+        }
+      };
+      
+      const fetchPopularTags = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('tags')
+            .select(`
+              id, name, 
+              thought_tags(count)
+            `)
+            .order('count', { foreignTable: 'thought_tags', ascending: false })
+            .limit(20);
+      
+          if (error) throw error;
+      
+          setPopularTags(
+            data.map(tag => ({
+              id: tag.id,
+              name: tag.name,
+              count: tag.thought_tags[0]?.count || 0
+            }))
+          );
+        } catch (error) {
+          console.error('Error fetching popular tags:', error);
+        }
+      };
 
     fetchTrendingTags();
     fetchPopularTags();
@@ -126,15 +129,15 @@ export default function HeaderExtensions() {
         {/* Trending Tags Bar (left) */}
         <div className="flex-1 flex items-center gap-3 overflow-x-auto no-scrollbar">
           <span className="text-[#A8A39B] text-xs font-medium whitespace-nowrap">Trending:</span>
-          {trendingTags.map((tag) => (
-            <Link 
-              key={tag.name} 
-              to={`/tags/${tag.name}`}
-              className="text-sm text-[#6B6A68] hover:text-[#C9A889] bg-[#FDFCFA] hover:bg-[#F5F3EF] px-3 py-1 rounded-full border border-[#E8E4DD] whitespace-nowrap transition-colors duration-200"
-            >
-              #{tag.name}
-            </Link>
-          ))}
+          {trendingTags.map((tag: Tag) => ( // Explicitly type the tag parameter
+  <Link 
+    key={tag.name} 
+    to={`/tags/${tag.name}`}
+    className="text-sm text-[#6B6A68] hover:text-[#C9A889] bg-[#FDFCFA] hover:bg-[#F5F3EF] px-3 py-1 rounded-full border border-[#E8E4DD] whitespace-nowrap transition-colors duration-200"
+  >
+    #{tag.name}
+  </Link>
+))}
         </div>
 
         {/* Tag Explorer (right) */}
@@ -198,19 +201,19 @@ export default function HeaderExtensions() {
                 </div>
                 
                 <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
-                  {popularTags.map(tag => (
-                    <button
-                      key={tag.id}
-                      onClick={() => toggleTagSelection(tag.name)}
-                      className={`text-xs px-2 py-1 rounded-full border transition-colors duration-200 ${
-                        selectedTags.includes(tag.name)
-                          ? 'bg-[#C9A889] text-white border-[#C9A889]'
-                          : 'bg-[#FDFCFA] text-[#6B6A68] border-[#E8E4DD] hover:bg-[#F5F3EF]'
-                      }`}
-                    >
-                      #{tag.name} <span className="text-xs opacity-70">({tag.count})</span>
-                    </button>
-                  ))}
+                {popularTags.map((tag: Tag) => ( // Explicitly type the tag parameter
+  <button
+    key={tag.name} // Use name as key since id might not exist
+    onClick={() => toggleTagSelection(tag.name)}
+    className={`text-xs px-2 py-1 rounded-full border transition-colors duration-200 ${
+      selectedTags.includes(tag.name)
+        ? 'bg-[#C9A889] text-white border-[#C9A889]'
+        : 'bg-[#FDFCFA] text-[#6B6A68] border-[#E8E4DD] hover:bg-[#F5F3EF]'
+    }`}
+  >
+    #{tag.name} <span className="text-xs opacity-70">({tag.count})</span>
+  </button>
+))}
                 </div>
               </div>
               

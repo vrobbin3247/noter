@@ -23,7 +23,6 @@ const Dashboard = () => {
   const [selectedColor, setSelectedColor] = useState('bg-[#f7f3e8]');
   const [selectedFont, setSelectedFont] = useState('font-serif');
   const [fontDropdownOpen, setFontDropdownOpen] = useState(false);
-  const DEEPSEEK_API_KEY = import.meta.env.VITE_PUBLIC_DEEPSEEK_KEY; // top-level
 
 
   const [page, setPage] = useState(0);

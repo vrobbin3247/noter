@@ -3,9 +3,7 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;; // top-level
-
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -50,8 +48,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     // Split comma-separated tags and clean them up
     const tags = content.split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0);
+      .map((tag: string) => tag.trim()) // Explicitly type 'tag' as string
+      .filter((tag: string) => tag.length > 0); // Explicitly type 'tag' as string
     
     console.log('Processed tags:', tags);
     res.status(200).json({ tags });
