@@ -16,10 +16,11 @@ interface Forum {
   unread: number;
 }
 
-type ThoughtTag = {
+// Fix: Update the ThoughtTag interface to match the actual structure
+interface QueryResultItem {
   tags: { name: string };
   thoughts: { created_at: string };
-};
+}
 
 export default function HeaderExtensions() {
   const [showForumSwitcher, setShowForumSwitcher] = useState(false);
@@ -66,12 +67,22 @@ export default function HeaderExtensions() {
       
           const tagCounts: Record<string, number> = {};
           
-          // Fix: properly type and access the queryData
-          (queryData as ThoughtTag[])?.forEach((item) => {
-            if (item.tags?.name) {
-              tagCounts[item.tags.name] = (tagCounts[item.tags.name] || 0) + 1;
-            }
-          });
+          // Fix: Process each item individually
+          if (queryData) {
+            queryData.forEach((item: any) => {
+              // Check if item.tags is an array and handle accordingly
+              if (Array.isArray(item.tags)) {
+                item.tags.forEach((tag: any) => {
+                  if (tag && tag.name) {
+                    tagCounts[tag.name] = (tagCounts[tag.name] || 0) + 1;
+                  }
+                });
+              } else if (item.tags && item.tags.name) {
+                // Handle case where tags is an object with name property
+                tagCounts[item.tags.name] = (tagCounts[item.tags.name] || 0) + 1;
+              }
+            });
+          }
       
           const sortedTags: Tag[] = Object.entries(tagCounts)
             .sort((a, b) => b[1] - a[1])
