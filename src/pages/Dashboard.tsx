@@ -115,9 +115,14 @@ const Dashboard = () => {
       const thoughtId = insertedThoughts[0].id;
   
       // 2. Call DeepSeek API to get Tags
-      const response = await axios.post('/api/deepseek', {
-        text: newThought.trim()
-      });
+      const response = await axios.post(
+        process.env.NODE_ENV === 'development'
+          ? '/api/deepseek'
+          : 'https://noter-theta.vercel.app/api/deepseek',
+        {
+          text: newThought.trim()
+        }
+      );
       const tags = response.data?.tags || [];
   
       // 3. Process tags only if we got some back
