@@ -51,17 +51,19 @@ type ThoughtCardProps = {
       <p className="text-3xl mb-6 break-words">{content}</p>
 
       {/* Bottom Actions */}
-      <div className="flex items-center font-serif justify-between text-gray-600 text-sm">
-        <div className="flex items-center gap-1">
-          <ArrowUpIcon className="h-4 w-4" />
-          {votes}
-        </div>
-        <div className="flex items-center gap-1">
-          <ChatBubbleLeftIcon className="h-4 w-4" />
-          {comments}
-        </div>
-        <BookmarkIcon className="h-4 w-4" />
-      </div>
+<div className="flex items-center font-serif justify-between text-gray-600 text-sm">
+  <div className="flex items-center gap-1 cursor-pointer group transition-colors duration-200 hover:text-[#C9A889] px-2 py-1 rounded-md hover:bg-[#F5F3EF]">
+    <ArrowUpIcon className="h-4 w-4 transition-colors duration-200 group-hover:stroke-[#C9A889]" />
+    <span className="transition-colors duration-200 group-hover:text-[#C9A889]">{votes}</span>
+  </div>
+  <div className="flex items-center gap-1 cursor-pointer group transition-colors duration-200 hover:text-[#C9A889] px-2 py-1 rounded-md hover:bg-[#F5F3EF]">
+    <ChatBubbleLeftIcon className="h-4 w-4 transition-colors duration-200 group-hover:stroke-[#C9A889]" />
+    <span className="transition-colors duration-200 group-hover:text-[#C9A889]">{comments}</span>
+  </div>
+  <div className="cursor-pointer group transition-colors duration-200 px-2 py-1 rounded-md hover:bg-[#F5F3EF]">
+    <BookmarkIcon className="h-4 w-4 transition-colors duration-200 group-hover:stroke-[#C9A889] group-hover:fill-[#F8F6F1]" />
+  </div>
+</div>
     </div>
   )
 }

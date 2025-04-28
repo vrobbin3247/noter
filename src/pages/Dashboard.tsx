@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import Masonry from 'react-masonry-css'
 import ThoughtCard from '../components/ThoughtCard';
+import PostThoughtForm from '../components/PostThoughtForm'; 
+import axios from 'axios';
 
 type Thought = {
   id: string;
@@ -21,9 +23,11 @@ const Dashboard = () => {
   const [selectedColor, setSelectedColor] = useState('bg-[#f7f3e8]');
   const [selectedFont, setSelectedFont] = useState('font-serif');
   const [fontDropdownOpen, setFontDropdownOpen] = useState(false);
+  const DEEPSEEK_API_KEY = import.meta.env.VITE_PUBLIC_DEEPSEEK_KEY; // top-level
+
 
   const [page, setPage] = useState(0);
-  const pageSize = 10; // how many thoughts per page
+  const pageSize = 12; // how many thoughts per page
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -83,36 +87,101 @@ const Dashboard = () => {
       return;
     }
   
-    // Optionally: Check for a logged-in user
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       console.error('No user logged in');
       return;
     }
   
-    const { error } = await supabase
-      .from('thoughts')
-      .insert([
-        {
-          content: newThought.trim(),
-          color: selectedColor,
-          font: selectedFont,
-          user_id: user.id,
-        }
-      ]);
+    try {
+      // 1. Insert the Thought first
+      const { data: insertedThoughts, error: thoughtError } = await supabase
+        .from('thoughts')
+        .insert([
+          {
+            content: newThought.trim(),
+            color: selectedColor,
+            font: selectedFont,
+            user_id: user.id,
+            created_at: new Date().toISOString()
+          }
+        ])
+        .select();
   
-    if (error) {
-      console.error('Error saving thought:', error.message);
-      return;
+      if (thoughtError || !insertedThoughts || insertedThoughts.length === 0) {
+        console.error('Error saving thought:', thoughtError?.message);
+        return;
+      }
+  
+      const thoughtId = insertedThoughts[0].id;
+  
+      // 2. Call DeepSeek API to get Tags
+      const response = await axios.post('/api/deepseek', {
+        text: newThought.trim()
+      });
+      const tags = response.data?.tags || [];
+  
+      // 3. Process tags only if we got some back
+      if (tags.length > 0) {
+        for (const tagName of tags) {
+            try {
+              const normalizedTag = tagName.toLowerCase().trim();
+          
+              const { data: existingTag, error: fetchError } = await supabase
+                .from('tags')
+                .select('id')
+                .eq('name', normalizedTag)
+                .maybeSingle();
+          
+              let tagId;
+              if (existingTag) {
+                tagId = existingTag.id;
+              } else if (!fetchError) {
+                const { data: newTag, error: insertError } = await supabase
+                  .from('tags')
+                  .insert([{ name: normalizedTag }])
+                  .select()
+                  .single();
+          
+                if (insertError) {
+                  console.error('Error inserting new tag:', insertError.message);
+                  continue;
+                }
+          
+                tagId = newTag?.id;
+              } else {
+                console.error('Error fetching tag:', fetchError.message);
+                continue;
+              }
+          
+              if (tagId) {
+                await supabase
+                  .from('thought_tags')
+                  .insert([{ thought_id: thoughtId, tag_id: tagId }]);
+              }
+          
+            } catch (tagError) {
+              console.error('Error processing tag:', tagName, tagError);
+            }
+          }
+      }
+  
+    } catch (apiError) {
+      console.error('Error in thought saving process:', apiError);
+    } finally {
+      // Reset UI regardless of errors
+      setNewThought('');
+      setSelectedColor('bg-[#f7f3e8]');
+      setSelectedFont('font-serif');
+      setPage(0);
+      // Refresh thoughts
+      const { data } = await supabase
+        .from('thoughts')
+        .select(`*, profiles (username)`)
+        .order('created_at', { ascending: false })
+        .range(0, pageSize - 1);
+      setThoughts(data || []);
     }
-  
-    // Reset inputs after successful save
-    setNewThought('');
-    setSelectedColor('bg-[#f7f3e8]');
-    setSelectedFont('font-serif');
-  
-    // Re-fetch thoughts
-    setPage(0); // go back to first page to see new post
   };
 
   return (
@@ -121,92 +190,7 @@ const Dashboard = () => {
       {/* Two-column layout */}
       <div className="flex gap-8">
         
-      {/* Left - Post a Thought */}
-<div className="w-[350px] flex-shrink-0 p-6 rounded-lg border-t border-l border-r border-gray-200 bg-[#fffdf9] shadow-sm h-fit">
-  <h2 className="text-xl font-serif mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
-    <span className="text-gray-600">✎</span> New Thought
-  </h2>
-  <textarea
-    value={newThought}
-    onChange={(e) => setNewThought(e.target.value)}
-    placeholder="Write your thought here..."
-    className="w-full h-40 p-4 bg-[#fffdf9] resize-none focus:outline-none mb-4 font-serif text-gray-700 border-b border-dashed border-gray-200 leading-relaxed"
-    style={{
-      backgroundImage: "repeating-linear-gradient(transparent, transparent 31px, #e7e5e4 31px, #e7e5e4 32px)",
-      lineHeight: "32px",
-      paddingTop: "8px"
-    }}
-  />
-
-  {/* Paper Style */}
-  <div className="mb-4">
-    <label className="block mb-2 font-serif text-sm text-gray-600">Paper Texture</label>
-    <div className="flex gap-2">
-      {[
-        'bg-[#f7f3e8]',
-        'bg-[#efe1c7]',
-        'bg-[#f8f1e3]',
-        'bg-[#f0ebe3]'
-      ].map((color) => (
-        <button
-          key={color}
-          onClick={() => setSelectedColor(color)}
-          className={`w-8 h-8 rounded-sm border border-gray-200 ${color} ${
-            selectedColor === color ? 'ring-1 ring-gray-400' : ''
-          } hover:scale-105 transition-transform`}
-        />
-      ))}
-    </div>
-  </div>
-
-{/* Font Style - Custom Dropdown */}
-<div className="mb-6 font-dropdown-container">
-  <label className="block mb-2 font-serif text-sm text-gray-600">Handwriting Style</label>
-  <div className="relative">
-    <div 
-      className="w-full py-2 px-3 border-b border-gray-200 bg-transparent font-serif text-gray-700 flex justify-between items-center cursor-pointer"
-      onClick={() => setFontDropdownOpen(!fontDropdownOpen)}
-    >
-      <span>{selectedFont === 'font-serif' ? 'Serif' : 
-             selectedFont === 'font-sans' ? 'Sans' : 'Mono'}</span>
-      <svg className={`w-4 h-4 text-gray-400 transition-transform ${fontDropdownOpen ? 'transform rotate-180' : ''}`} 
-          fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-      </svg>
-    </div>
-    
-    {fontDropdownOpen && (
-      <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-100 shadow-sm z-10">
-        {[
-          { value: 'font-serif', label: 'Serif' },
-          { value: 'font-sans', label: 'Sans' },
-          { value: 'font-mono', label: 'Mono' }
-        ].map((font) => (
-          <div
-            key={font.value}
-            className={`py-2 px-3 cursor-pointer hover:bg-gray-50 ${
-              selectedFont === font.value ? 'bg-gray-50' : ''
-            } ${font.value}`}
-            onClick={() => {
-              setSelectedFont(font.value);
-              setFontDropdownOpen(false);
-            }}
-          >
-            {font.label}
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-</div>
-
-  {/* Post Button */}
-  <button
-  onClick={handleSaveThought}
-   className="w-full py-2 border border-gray-300 rounded-sm bg-[#fdfdfa] text-gray-700 font-serif hover:bg-gray-50 transition-colors shadow-sm">
-    Save Thought
-  </button>
-</div>
+      
 
         {/* Right - Public Thoughts */}
         <div className="flex-1">
@@ -266,6 +250,19 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Left - Post a Thought */}
+        <PostThoughtForm
+    newThought={newThought}
+    setNewThought={setNewThought}
+    selectedColor={selectedColor}
+    setSelectedColor={setSelectedColor}
+    selectedFont={selectedFont}
+    setSelectedFont={setSelectedFont}
+    handleSaveThought={handleSaveThought}
+    fontDropdownOpen={fontDropdownOpen}
+    setFontDropdownOpen={setFontDropdownOpen}
+  />
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ export default function AuthForm() {
 
   const generateInitialsAvatar = (username: string) => {
     const initials = username.slice(0, 2).toUpperCase();
-    return `https://api.dicebear.com/7.x/initials/svg?seed=${initials}&backgroundType=gradientLinear`;
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${initials}&backgroundColor=fdfae0`;
   };
 
   const handleAuth = async (e: React.FormEvent) => {

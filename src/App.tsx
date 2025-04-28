@@ -5,6 +5,7 @@ import { Session } from '@supabase/supabase-js'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Header from './components/Header'
+import HeaderExtensions from './components/HeaderExtensions'
 
 function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -24,7 +25,12 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen flex flex-col">
-        {session && <Header />}
+        {session && (
+          <>
+            <Header />
+            <HeaderExtensions />
+          </>
+        )}
         <main className="flex-1">
           <Routes>
             <Route path="/" element={session ? <Dashboard /> : <Login />} />

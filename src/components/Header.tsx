@@ -42,31 +42,31 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-[#FAF8F5] pt-4 px-6 ">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <header className="w-full bg-[#F8F6F1] border-b border-[#E8E4DD] pt-4 pb-3 px-8">
+      <div className="w-full flex items-center justify-between">
         {/* Left - App Name */}
         <div className="flex items-center">
           <Link 
             to="/" 
-            className="text-5xl font-bold text-orange-300"
-            style={{ fontFamily: "'Fredoka', sans-serif" }}
+            className="text-4xl font-medium text-[#C9A889]"
+            style={{ fontFamily: "'Garamond', serif" }}
           >
             Mura
           </Link>
         </div>
         
         {/* Middle - Search Field */}
-        <div className="flex-1 max-w-2xl mx-6">
+        <div className="flex-1 max-w-md mx-10">
           <div className="relative">
             <input
               type="text"
-              placeholder="Search..."
-              className="w-full py-2 px-4 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Search notes..."
+              className="w-full py-1.5 px-4 rounded-lg border border-[#E2DED7] bg-[#FDFCFA] focus:outline-none focus:ring-1 focus:ring-[#D9C9B8] text-sm placeholder-[#BBBBBB]"
             />
             <svg
-              className="absolute right-3 top-2.5 h-5 w-5"
+              className="absolute right-3 top-2 h-4 w-4"
               fill="none"
-              stroke="#88ccf1"
+              stroke="#C9C5BF"
               viewBox="0 0 24 24"
             >
               <path
@@ -84,16 +84,17 @@ export default function Header() {
           <div 
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => setShowDropdown(!showDropdown)}
-          >            {avatarUrl ? (
+          >
+            {avatarUrl ? (
               <img 
                 src={avatarUrl} 
                 alt="User avatar"
-                className="w-14 h-14 rounded-full object-cover border-2 border-gray-200 hover:border-blue-300 transition-all"
+                className="w-10 h-10 rounded-full object-cover border border-[#E8E4DD] hover:border-[#D9C9B8] transition-all"
               />
             ) : (
-              <div className="w-14 h-14 rounded-full bg-gray-300 flex items-center justify-center hover:bg-gray-400 transition-all">
+              <div className="w-10 h-10 rounded-full bg-[#F2EEE8] flex items-center justify-center hover:bg-[#EBE7E0] transition-all">
                 <svg
-                  className="h-6 w-6 text-gray-600"
+                  className="h-5 w-5 text-[#B4AFA8]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -101,7 +102,7 @@ export default function Header() {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth="2"
+                    strokeWidth="1.5"
                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                   />
                 </svg>
@@ -111,16 +112,16 @@ export default function Header() {
 
           {/* Dropdown Menu */}
           {showDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+            <div className="absolute right-0 mt-2 w-44 bg-[#FDFCFA] rounded-md shadow-sm border border-[#E8E4DD] py-1 z-50">
               <Link
                 to="/profile"
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                className="block px-4 py-2 text-sm text-[#6B6A68] hover:bg-[#F5F3EF]"
               >
                 Your Profile
               </Link>
               <button
                 onClick={handleSignOut}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                className="block w-full text-left px-4 py-2 text-sm text-[#6B6A68] hover:bg-[#F5F3EF]"
               >
                 Sign out
               </button>
