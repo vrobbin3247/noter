@@ -23,7 +23,7 @@ const Dashboard = () => {
   const [selectedColor, setSelectedColor] = useState('bg-[#f7f3e8]');
   const [selectedFont, setSelectedFont] = useState('font-serif');
   const [fontDropdownOpen, setFontDropdownOpen] = useState(false);
-
+  const [loading, setLoading] = useState(false);
 
   const [page, setPage] = useState(0);
   const pageSize = 12; // how many thoughts per page
@@ -86,9 +86,11 @@ const Dashboard = () => {
       return;
     }
   
+    setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       console.error('No user logged in');
+      setLoading(false);
       return;
     }
   
@@ -109,10 +111,12 @@ const Dashboard = () => {
   
       if (thoughtError || !insertedThoughts || insertedThoughts.length === 0) {
         console.error('Error saving thought:', thoughtError?.message);
+        setLoading(false);
         return;
       }
   
       const thoughtId = insertedThoughts[0].id;
+      console.log('Successfully created thought with ID:', thoughtId);
   
       // 2. Call DeepSeek API to get Tags
       const response = await axios.post(
@@ -121,56 +125,82 @@ const Dashboard = () => {
           text: newThought.trim()
         },
         {
-            headers: {
-                'Content-Type': 'application/json'
-              }
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
       );
+      
       const tags = response.data?.tags || [];
-  
+      console.log('Tags received from API:', tags);
+      
       // 3. Process tags only if we got some back
       if (tags.length > 0) {
         for (const tagName of tags) {
-            try {
-              const normalizedTag = tagName.toLowerCase().trim();
-          
-              const { data: existingTag, error: fetchError } = await supabase
+          try {
+            const normalizedTag = tagName.toLowerCase().trim();
+            console.log('Processing tag:', normalizedTag);
+        
+            // Check if tag exists
+            const { data: existingTag, error: fetchError } = await supabase
+              .from('tags')
+              .select('id')
+              .eq('name', normalizedTag)
+              .maybeSingle();
+        
+            if (fetchError) {
+              console.error('Error fetching tag:', fetchError.message);
+              continue;
+            }
+        
+            let tagId;
+            
+            // Insert new tag if needed
+            if (existingTag) {
+              tagId = existingTag.id;
+              console.log('Found existing tag with ID:', tagId);
+            } else {
+              const { data: newTag, error: insertError } = await supabase
                 .from('tags')
-                .select('id')
-                .eq('name', normalizedTag)
-                .maybeSingle();
-          
-              let tagId;
-              if (existingTag) {
-                tagId = existingTag.id;
-              } else if (!fetchError) {
-                const { data: newTag, error: insertError } = await supabase
-                  .from('tags')
-                  .insert([{ name: normalizedTag }])
-                  .select()
-                  .single();
-          
-                if (insertError) {
-                  console.error('Error inserting new tag:', insertError.message);
-                  continue;
-                }
-          
-                tagId = newTag?.id;
-              } else {
-                console.error('Error fetching tag:', fetchError.message);
+                .insert([{ name: normalizedTag }])
+                .select()
+                .single();
+        
+              if (insertError) {
+                console.error('Error inserting new tag:', insertError.message);
                 continue;
               }
-          
-              if (tagId) {
-                await supabase
-                  .from('thought_tags')
-                  .insert([{ thought_id: thoughtId, tag_id: tagId }]);
-              }
-          
-            } catch (tagError) {
-              console.error('Error processing tag:', tagName, tagError);
+        
+              tagId = newTag?.id;
+              console.log('Created new tag with ID:', tagId);
             }
+        
+            // Insert relationship in thought_tags
+            if (tagId) {
+              const { data: thoughtTagData, error: thoughtTagError } = await supabase
+                .from('thought_tags')
+                .insert([{ 
+                  thought_id: thoughtId, 
+                  tag_id: tagId 
+                }])
+                .select();
+        
+              if (thoughtTagError) {
+                console.error('Error linking thought to tag:', thoughtTagError.message);
+                // Log the specific error details for debugging
+                console.error('Attempted to link thought ID:', thoughtId, 'with tag ID:', tagId);
+                console.error('Error details:', thoughtTagError);
+              } else {
+                console.log('Successfully linked thought to tag:', thoughtTagData);
+              }
+            }
+        
+          } catch (tagError) {
+            console.error('Error processing tag:', tagName, tagError);
           }
+        }
+      } else {
+        console.log('No tags were returned from the API');
       }
   
     } catch (apiError) {
@@ -181,6 +211,8 @@ const Dashboard = () => {
       setSelectedColor('bg-[#f7f3e8]');
       setSelectedFont('font-serif');
       setPage(0);
+      setLoading(false);
+      
       // Refresh thoughts
       const { data } = await supabase
         .from('thoughts')
@@ -197,14 +229,8 @@ const Dashboard = () => {
       {/* Two-column layout */}
       <div className="flex gap-8">
         
-      
-
         {/* Right - Public Thoughts */}
         <div className="flex-1">
-          {/* <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            🔥 Public Thoughts
-          </h2> */}
-          
           <Masonry
             breakpointCols={breakpointColumnsObj}
             className="flex w-auto -ml-4"
@@ -260,16 +286,17 @@ const Dashboard = () => {
 
         {/* Left - Post a Thought */}
         <PostThoughtForm
-    newThought={newThought}
-    setNewThought={setNewThought}
-    selectedColor={selectedColor}
-    setSelectedColor={setSelectedColor}
-    selectedFont={selectedFont}
-    setSelectedFont={setSelectedFont}
-    handleSaveThought={handleSaveThought}
-    fontDropdownOpen={fontDropdownOpen}
-    setFontDropdownOpen={setFontDropdownOpen}
-  />
+          newThought={newThought}
+          setNewThought={setNewThought}
+          selectedColor={selectedColor}
+          setSelectedColor={setSelectedColor}
+          selectedFont={selectedFont}
+          setSelectedFont={setSelectedFont}
+          handleSaveThought={handleSaveThought}
+          fontDropdownOpen={fontDropdownOpen}
+          setFontDropdownOpen={setFontDropdownOpen}
+          loading={loading}
+        />
       </div>
     </div>
   );
