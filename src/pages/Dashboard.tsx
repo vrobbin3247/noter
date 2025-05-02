@@ -182,7 +182,7 @@ const Dashboard = () => {
             // Insert relationship in thought_tags
             if (tagId) {
               console.log('Linking thought', thoughtId, 'with tag', tagId);
-              const { data: thoughtTagData, error: thoughtTagError } = await supabase
+              const {  error: thoughtTagError } = await supabase
                 .from('thought_tags')
                 .insert([{ 
                   thought_id: thoughtId, 
