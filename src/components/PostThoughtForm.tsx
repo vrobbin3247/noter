@@ -1,6 +1,5 @@
 import React from 'react';
 
-
 type PostThoughtFormProps = {
   newThought: string;
   setNewThought: (value: string) => void;
@@ -11,6 +10,7 @@ type PostThoughtFormProps = {
   handleSaveThought: () => void;
   fontDropdownOpen: boolean;
   setFontDropdownOpen: (value: boolean) => void;
+  loading?: boolean; // Add the loading prop as optional
 };
 
 const PostThoughtForm: React.FC<PostThoughtFormProps> = ({
@@ -23,6 +23,7 @@ const PostThoughtForm: React.FC<PostThoughtFormProps> = ({
   handleSaveThought,
   fontDropdownOpen,
   setFontDropdownOpen,
+  loading = false, // Default value is false
 }) => {
   return (
     <div className="w-[350px] flex-shrink-0 p-6 rounded-lg border border-gray-300 bg-[#fffdf9] h-fit">
@@ -34,7 +35,8 @@ const PostThoughtForm: React.FC<PostThoughtFormProps> = ({
         value={newThought}
         onChange={(e) => setNewThought(e.target.value)}
         placeholder="Write your thought here..."
-        className="w-full h-40 p-4 bg-[#fffdf9] resize-none focus:outline-none mb-4 font-serif text-gray-700 border-b border-dashed border-gray-200 leading-relaxed"
+        disabled={loading}
+        className={`w-full h-40 p-4 bg-[#fffdf9] resize-none focus:outline-none mb-4 font-serif text-gray-700 border-b border-dashed border-gray-200 leading-relaxed ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
         style={{
           backgroundImage: "repeating-linear-gradient(transparent, transparent 31px, #e7e5e4 31px, #e7e5e4 32px)",
           lineHeight: "32px",
@@ -55,9 +57,10 @@ const PostThoughtForm: React.FC<PostThoughtFormProps> = ({
             <button
               key={color}
               onClick={() => setSelectedColor(color)}
+              disabled={loading}
               className={`w-8 h-8 rounded-sm border border-gray-200 ${color} ${
                 selectedColor === color ? 'ring-1 ring-gray-400' : ''
-              } hover:scale-105 transition-transform`}
+              } hover:scale-105 transition-transform ${loading ? 'opacity-70 cursor-not-allowed hover:scale-100' : ''}`}
             />
           ))}
         </div>
@@ -68,8 +71,8 @@ const PostThoughtForm: React.FC<PostThoughtFormProps> = ({
         <label className="block mb-2 font-serif text-sm text-gray-600">Handwriting Style</label>
         <div className="relative">
           <div 
-            className="w-full py-2 px-3 border-b border-gray-200 bg-transparent font-serif text-gray-700 flex justify-between items-center cursor-pointer"
-            onClick={() => setFontDropdownOpen(!fontDropdownOpen)}
+            className={`w-full py-2 px-3 border-b border-gray-200 bg-transparent font-serif text-gray-700 flex justify-between items-center ${loading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}`}
+            onClick={() => !loading && setFontDropdownOpen(!fontDropdownOpen)}
           >
             <span>{selectedFont === 'font-serif' ? 'Serif' : selectedFont === 'font-sans' ? 'Sans' : 'Mono'}</span>
             <svg className={`w-4 h-4 text-gray-400 transition-transform ${fontDropdownOpen ? 'transform rotate-180' : ''}`} 
@@ -78,7 +81,7 @@ const PostThoughtForm: React.FC<PostThoughtFormProps> = ({
             </svg>
           </div>
 
-          {fontDropdownOpen && (
+          {fontDropdownOpen && !loading && (
             <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-100 shadow-sm z-10">
               {[
                 { value: 'font-serif', label: 'Serif' },
@@ -106,9 +109,14 @@ const PostThoughtForm: React.FC<PostThoughtFormProps> = ({
       {/* Post Button */}
       <button
         onClick={handleSaveThought}
-        className="w-full py-2 border border-gray-300 rounded-sm bg-[#fdfdfa] text-gray-700 font-serif hover:bg-gray-100 hover:border-black transition-colors shadow-sm"
+        disabled={loading || !newThought.trim()}
+        className={`w-full py-2 border border-gray-300 rounded-sm font-serif transition-colors shadow-sm ${
+          loading || !newThought.trim() 
+            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+            : 'bg-[#fdfdfa] text-gray-700 hover:bg-gray-100 hover:border-black'
+        }`}
       >
-        Save Thought
+        {loading ? 'Saving...' : 'Save Thought'}
       </button>
     </div>
   );

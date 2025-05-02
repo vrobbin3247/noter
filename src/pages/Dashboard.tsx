@@ -95,6 +95,8 @@ const Dashboard = () => {
     }
   
     try {
+      console.log('Saving thought...');
+      
       // 1. Insert the Thought first
       const { data: insertedThoughts, error: thoughtError } = await supabase
         .from('thoughts')
@@ -119,6 +121,7 @@ const Dashboard = () => {
       console.log('Successfully created thought with ID:', thoughtId);
   
       // 2. Call DeepSeek API to get Tags
+      console.log('Fetching tags from API...');
       const response = await axios.post(
         '/api/deepseek', // Use relative path in both environments
         {
@@ -136,6 +139,7 @@ const Dashboard = () => {
       
       // 3. Process tags only if we got some back
       if (tags.length > 0) {
+        console.log('Processing tags:', tags);
         for (const tagName of tags) {
           try {
             const normalizedTag = tagName.toLowerCase().trim();
@@ -177,13 +181,13 @@ const Dashboard = () => {
         
             // Insert relationship in thought_tags
             if (tagId) {
+              console.log('Linking thought', thoughtId, 'with tag', tagId);
               const { data: thoughtTagData, error: thoughtTagError } = await supabase
                 .from('thought_tags')
                 .insert([{ 
                   thought_id: thoughtId, 
                   tag_id: tagId 
-                }])
-                .select();
+                }]);
         
               if (thoughtTagError) {
                 console.error('Error linking thought to tag:', thoughtTagError.message);
@@ -191,7 +195,7 @@ const Dashboard = () => {
                 console.error('Attempted to link thought ID:', thoughtId, 'with tag ID:', tagId);
                 console.error('Error details:', thoughtTagError);
               } else {
-                console.log('Successfully linked thought to tag:', thoughtTagData);
+                console.log('Successfully linked thought to tag:', normalizedTag);
               }
             }
         
@@ -203,6 +207,8 @@ const Dashboard = () => {
         console.log('No tags were returned from the API');
       }
   
+      console.log('Thought saved successfully!');
+      
     } catch (apiError) {
       console.error('Error in thought saving process:', apiError);
     } finally {
@@ -229,8 +235,14 @@ const Dashboard = () => {
       {/* Two-column layout */}
       <div className="flex gap-8">
         
+      
+
         {/* Right - Public Thoughts */}
         <div className="flex-1">
+          {/* <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            🔥 Public Thoughts
+          </h2> */}
+          
           <Masonry
             breakpointCols={breakpointColumnsObj}
             className="flex w-auto -ml-4"
